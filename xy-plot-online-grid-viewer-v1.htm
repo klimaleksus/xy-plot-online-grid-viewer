@@ -170,7 +170,6 @@ function add_files(files){
   if(!files){
     return;
   }
-  files_index = files_array.length;
   var re = /^.*[\\\/]/;
   var arr = [];
   for(var i=0,n=files.length; i<n; i++){
@@ -190,7 +189,13 @@ function add_files(files){
       }
     }
   };
-  files_array.push.apply(files_array,arr);
+  if(files_index>=0 && files_index<files_array.length-1){
+    files_index++;
+    files_array.splice.apply(files_array,[files_index,0].concat(arr));
+  }else{
+    files_index = files_array.length;
+    files_array.push.apply(files_array,arr);
+  }
   open_file(files_index);
 };
 
