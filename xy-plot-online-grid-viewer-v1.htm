@@ -1,0 +1,465 @@
+﻿<!doctype html>
+<html>
+<head>
+<meta charset="utf8" />
+<style>
+*{
+  box-sizing: border-box;
+}
+html, body{
+  margin: 0;
+  padding: 0;
+  background: #ccc;
+  font: bold 16pt Arial;
+}
+table{
+  border-collapse: collapse;
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+td{
+  height: auto;
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+img{
+  width: 100%;
+  max-height: 100vh;
+}
+div{
+  width: 100%;
+  height: 100%;
+}
+aside{
+  position: absolute;
+  display: block;
+  background-color: rgba(204,204,204,0.5);
+  pointer-events: none;
+}
+span{
+  padding: 8px;
+  font: normal 14pt Courier New,Courier,monospace;
+  text-align: left;
+  vertical-align: top;
+}
+#section_help{
+  margin: 24px;
+}
+</style>
+<script>
+"use strict";
+window.myonload = function(){
+
+var default_width = 512;
+var default_height = 512;
+var scale_step = 1.1;
+var app_title = 'xy-plot online grid viewer v1';
+
+var body = document.body;
+body.innerHTML = '<section id="section_main"><table><tr><td><table><tr><td align="left" valign="top"><span id="dim_out">X*Y</span></td><td align="left" valign="bottom"><div id="img_x" alt="&nbsp; X &nbsp;"></div></td></tr><tr><td align="right" valign="top"><div id="img_y" alt="&nbsp; Y &nbsp;"></div></td><td align="left" valign="top"><div id="img_cell" alt="&nbsp; CELL &nbsp;"></div></td></tr></table></td><td><div style="position:relative;line-height:0;"><img id="img_grid" alt="&nbsp; GRID &nbsp;"/><aside id="line_x1"></aside><aside id="line_x2"></aside><aside id="line_y1"></aside><aside id="line_y2"></aside></td></tr></table><img id="img_load"></div></img></section><section id="section_help"><h1>'+app_title+'</h1><h3>Load some "xy_grid-…" images made by <a href="https://github.com/AUTOMATIC1111/stable-diffusion-webui/wiki/Features#xy-plot" target="_blank" rel="noopener noreferrer">AUTOMATIC1111/stable-diffusion-webui</a> "X/Y plot" feature:</h3><ul><li>Drag-and-drop local files to this page (in-browser app, no server connection)</li><li>Copy and paste files with Ctrl+V (works in Chrome)</li><li>Copy and paste images (as pixel data) with Ctrl+V</li><li>Copy and paste a link to image as URL (cross-domain is OK)</li><li>Drag-and-drop a link to image or the image itself from other browser tabs (pasted as URL)</li><li>Paste with context menu / right mouse button: <input id="autofocus" type="text" autofocus="autofocus" oninput="this.value=[]"/> (autofocus)</li><li>Open files via modal winodow: <input type="file" multiple id="my_file" accept="image/*"/> (also by Insert hotkey)</li></ul><h3>Hotkeys / Controls:</h3><ul><li>Up-Left-Down-Right / WASD = change cell, navigate; Home / End = first / last cell</li><li>Ctrl + arrows = change size by 8 pixels; Shift + arrows = double size; Ctrl+Shift + arrows = by pixels</li><li>PageDown-PageUp / Q-E = change image (previous-next); 1-9 = select image by index; 0 = select last</li><li>+ or - = change scale; * or \\ = reset scale. (You may use browser scalling also, but it is not recommended)</li><li>Delete = remove current image from queue; Escape = remove all, return to main screen</li><li>Ctrl+V or drag-and-drop = add more images; Insert = trigger image selection modal window</li></ul></section>';
+
+var
+  img_grid = GEBI('img_grid'),
+  img_x = GEBI('img_x'),
+  img_y = GEBI('img_y'),
+  img_cell = GEBI('img_cell'),
+  img_load = GEBI('img_load'),
+  line_x1 = GEBI('line_x1'),
+  line_x2 = GEBI('line_x2'),
+  line_y1 = GEBI('line_y1'),
+  line_y2 = GEBI('line_y2'),
+  dim_out = GEBI('dim_out'),
+  section_main = GEBI('section_main'),
+  section_help = GEBI('section_help'),
+  my_file = GEBI('my_file'),
+  _;
+
+line_x1.style.top = line_x2.style.top = '0px';
+line_x1.style.height = line_x2.style.height = '100%';
+line_y1.style.left = line_y2.style.left = '0px';
+line_y1.style.width = line_y2.style.width = '100%';
+line_x1.style.left = line_x2.style.right = '0px';
+line_y1.style.top = line_y2.style.bottom = '0px';
+  
+img_load.style.display = 'none';
+
+var html = document.getElementsByTagName('html')[0];
+html.addEventListener('dragenter',stopevent);
+html.addEventListener('dragover',stopevent);
+html.addEventListener('drop',function(e){
+  stopevent(e);
+  var dt = e.dataTransfer;
+  var files = dt&& dt.files;
+  if(files&& files.length){
+    add_files(files);
+  }else{
+    var data = dt&& dt.getData('text/plain');
+    if(data){
+      add_files([data]);
+    }
+  }
+});
+document.addEventListener('paste',function(e){
+  var clipboardData = e.clipboardData;
+  var items = clipboardData && clipboardData.items;
+  if(items){
+    var arr = [];
+    for(var i=0,n=items.length; i<n; i++){
+      var item = items[i];
+      if(item){
+        //console.log(item);
+        if(item.kind!=='string'){
+          item = item.getAsFile();
+        }else{
+          item = new Promise(function(ok){
+            item.getAsString(ok);
+          });
+        }
+        arr.push(item);
+      }
+    };
+    Promise.all(arr).then(function(arr){
+      add_files(arr);
+    });
+  }
+});
+
+my_file.addEventListener('change',function(e){
+  var arr = [];
+  for(var i=0,a=my_file.files,n=a.length; i<n; i++){
+    var item = a[i];
+    //console.log(item);
+    arr.push(item);
+  }
+  my_file.value = '';
+  add_files(arr);
+});
+my_file.value = '';
+
+function GEBI(id){
+  return document.getElementById(id);
+};
+
+function stopevent(e){
+  e.stopPropagation();
+  e.preventDefault();
+};
+
+var
+  main_width = 0,
+  main_height = 0,
+  cell_width = default_width,
+  cell_height = default_height,
+  grid_width = 0,
+  grid_height = 0,
+  head_width = 0,
+  head_height = 0,
+  image_scale = 1,
+  view_x = Infinity,
+  view_y = Infinity,
+  percent_x = 1,
+  percent_y = 1,
+  files_array = [],
+  files_index = -1,
+  current_name = '',
+  _;
+
+function add_files(files){
+  if(!files){
+    return;
+  }
+  files_index = files_array.length;
+  var re = /^.*[\\\/]/;
+  var arr = [];
+  for(var i=0,n=files.length; i<n; i++){
+    var file = files[i];
+    var name;
+    if(file){
+      if((typeof file)!=='string'){
+        //console.log(file);
+        name = file.name;
+        file = URL.createObjectURL(file);
+      }else{
+        name = file.replace(re,'');
+      }
+      if(!loaded_files[file]){
+        loaded_files[file] = name;
+        arr.push(file);
+      }
+    }
+  };
+  files_array.push.apply(files_array,arr);
+  open_file(files_index);
+};
+
+var loaded_files = Object.create(null);
+
+function open_file(index){
+  if(index<0){
+    index = 0;
+  }else if(index>=files_array.length){
+    index = files_array.length-1;
+  }
+  files_index = index;
+  var url;
+  if(files_array.length){
+    url = files_array[index];
+    current_name = '"'+(loaded_files[url]||'?')+'"';
+    section_main.style.display = 'block';
+    section_help.style.display = 'none';
+    img_load.onerror = function(){
+      img_load.onload = img_load.onerror = null;
+      var took = files_array.splice(index,1);
+      if(took&&took.length){
+        took = took[0];
+        delete loaded_files[took];
+        URL.revokeObjectURL(took);
+      }
+      open_file(index);
+    };
+    html.style.overflow = body.style.overflow = 'hidden';
+  }else{
+    current_name = app_title;
+    url = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
+    section_main.style.display = 'none';
+    section_help.style.display = 'block';
+    html.style.overflow = body.style.overflow = '';
+  }
+  img_load.src = '';
+  img_load.onload = function(){
+    img_load.onload = img_load.onerror = null;
+    main_width = img_load.width;
+    main_height = img_load.height;
+    img_grid.src = img_load.src;
+    img_x.style.backgroundImage = img_y.style.backgroundImage = img_cell.style.backgroundImage = "url('"+url+"')";
+    if(cell_width<=8 || cell_height<=8){
+      cell_width = default_width;
+      cell_height = default_height;
+    }
+    render(true,false);
+    img_load.src = '';
+  };
+  img_load.src = url;
+};
+
+var old_x, old_y, old_w, old_h, old_s, old_n;
+
+function render(force,nomove){
+  if(force || cell_width!==old_w || cell_height!==old_h || image_scale!==old_s || old_n){
+    if(cell_width>main_width){
+      cell_width = main_width;
+    }else if(cell_width<8){
+      cell_width = 8;
+    }
+    if(cell_height>main_height){
+      cell_height = main_height;
+    }else if(cell_height<8){
+      cell_height = 8;
+    }
+    grid_width = main_width/cell_width |0;
+    grid_height = main_height/cell_height |0;
+    head_width = main_width-grid_width*cell_width;
+    head_height = main_height-grid_height*cell_height;
+    old_w = cell_width;
+    old_h = cell_height;
+    old_s = image_scale;
+    var scale_width = cell_width*image_scale;
+    var scale_height = cell_height*image_scale;
+    if(nomove){
+      old_n = true;
+      img_x.style.opacity = '0.5';
+      img_y.style.opacity = '0.5';
+    }else{
+      old_n = false;
+      img_x.style.width = scale_width+'px';
+      img_y.style.height = scale_height+'px';
+      img_x.style.height = (head_height*image_scale)+'px';
+      img_y.style.width = (head_width*image_scale)+'px';
+      img_x.style.opacity = '1';
+      img_y.style.opacity = '1';
+    }
+    img_cell.style.width = img_cell.style.minWidth = scale_width+'px';
+    img_cell.style.height = img_cell.style.minHeight = scale_height+'px';
+    var td = img_cell.parentNode;
+    td.style.width = td.style.minWidth = scale_width+'px';
+    td.style.height = td.style.minHeight = scale_height+'px';
+    dim_out.textContent = (cell_width||0)+'*'+(cell_height||0)+' ('+((files_index+1)||0)+'/'+files_array.length+')';
+    view_x = Math.round(percent_x*(grid_width-1)) ||0;
+    view_y = Math.round(percent_y*(grid_height-1)) ||0;
+    var ss = (image_scale*main_width)+'px '+(image_scale*main_height)+'px';
+    img_cell.style.backgroundSize = ss;
+    img_x.style.backgroundSize = ss;
+    img_y.style.backgroundSize = ss;
+    //console.log(main_width,main_height,grid_width,grid_height,head_width,head_height,cell_width,cell_height,view_x,view_y);
+  }else if(view_x===old_x && view_y===old_y){
+    return;
+  }
+  if(view_x>=grid_width){
+    view_x = grid_width-1;  
+  }else if(!(view_x>0)){
+    view_x = 0;
+  }
+  if(view_y>=grid_height){
+    view_y = grid_height-1;
+  }else if(!(view_y>0)){
+    view_y = 0;
+  }
+  old_x = view_x;
+  old_y = view_y;
+  var x = (main_width-(head_width+view_x*cell_width))*image_scale |0;
+  var y = (main_height-(head_height+view_y*cell_height))*image_scale |0;
+  img_cell.style.backgroundPosition = x+'px '+y+'px';
+  img_x.style.backgroundPosition = x+'px 0px';
+  img_y.style.backgroundPosition = '0px '+ y+'px';
+  line_x1.style.right = (((grid_width-view_x)*cell_width)/main_width*100)+'%';
+  line_x2.style.left = ((head_width+(view_x+1)*cell_width)/main_width*100)+'%';
+  line_y1.style.bottom = (((grid_height-view_y)*cell_height)/main_height*100)+'%';
+  line_y2.style.top = ((head_height+(view_y+1)*cell_height)/main_height*100)+'%';
+  document.title = current_name;
+};
+
+window.onkeydown = function(e){
+  //console.log(e.key);
+  var save = false;
+  var ctrl = e.ctrlKey||e.metaKey;
+  var shift = e.shiftKey||e.altKey;
+  var key = e.key;
+  if(ctrl||shift){
+    var add = ctrl?shift?1:8:0;
+    var mul = shift&&!ctrl?2:1;
+    var mask = shift&&ctrl?0x0fffffff:0x0ffffff8;
+    switch(key){
+    case 'ArrowRight':
+    case 'D':
+    case 'd':
+      cell_width = (cell_width*mul+add)&mask;
+      break;
+    case 'ArrowDown':
+    case 'S':
+    case 's':
+      cell_height = (cell_height/mul-add)&mask;
+      break;
+    case 'ArrowLeft':
+    case 'A':
+    case 'a':
+      cell_width = (cell_width/mul-add)&mask;
+      break;
+    case 'ArrowUp':
+    case 'W':
+    case 'w':
+      cell_height = (cell_height*mul+add)&mask;
+      break;
+    default:
+      return;
+    }
+  }else{
+    switch(key){
+    case 'ArrowRight':
+    case 'D':
+    case 'd':
+      view_x++;
+      break;
+    case 'ArrowDown':
+    case 'S':
+    case 's':
+      view_y++;
+      break;
+    case 'ArrowLeft':
+    case 'A':
+    case 'a':
+      view_x--;
+      break;
+    case 'ArrowUp':
+    case 'W':
+    case 'w':
+      view_y--;
+      break;
+    case 'Home':
+      view_x = 0;
+      view_y = 0;
+      break;
+    case 'End':
+      view_x = grid_width-1;
+      view_y = grid_height-1;
+      break;
+    case '+':
+    case '=':
+      image_scale *= scale_step;
+      break;
+    case '-':
+    case '_':
+      image_scale /= scale_step;
+      break;
+    case '*':
+    case '/':
+    case '\\':
+      image_scale = 1;
+      break;
+    case 'PageUp':
+    case 'E':
+    case 'e':
+      open_file(files_index+1);
+      break;
+    case 'PageDown':
+    case 'Q':
+    case 'q':
+      open_file(files_index-1);
+      break;
+    case 'Delete':
+      var took = files_array.splice(files_index,1);
+      if(took&&took.length){
+        took = took[0];
+        delete loaded_files[took];
+        URL.revokeObjectURL(took);
+      }
+      open_file(files_index);
+      break;
+    case 'Insert':
+      my_file.click();
+      break;
+    case 'Escape':
+      for(var i=0,n=files_array.length; i<n; i++){
+        var took = files_array[i];
+        delete loaded_files[took];
+        URL.revokeObjectURL(took);
+      }
+      files_array.length = 0;
+      open_file();
+      break;
+    case '1':
+    case '2':
+    case '3':
+    case '4':
+    case '5':
+    case '6':
+    case '7':
+    case '8':
+    case '9':
+    case '0':
+      open_file((+key||files_array.length)-1);
+      break;
+    default:
+      return;
+    }
+    save = true;
+  }
+  render(false,ctrl||shift);
+  e.preventDefault();
+  if(save){
+    percent_x = view_x/(grid_width-1);
+    percent_y = view_y/(grid_height-1);
+  }
+};
+
+open_file();
+GEBI('autofocus').focus();
+
+};
+</script>
+</head>
+<body onload="window.myonload();">
+Enable javascript.
+</body>
+</html>
