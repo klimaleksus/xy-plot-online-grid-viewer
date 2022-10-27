@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html>
 <head>
 <meta charset="utf8" />
@@ -38,10 +38,10 @@ aside{
   background-color: rgba(204,204,204,0.5);
   pointer-events: none;
 }
-span{
+center{
   padding: 8px;
   font: normal 14pt Courier New,Courier,monospace;
-  text-align: left;
+  text-align: center;
   vertical-align: top;
 }
 #section_help{
@@ -58,7 +58,7 @@ var scale_step = 1.1;
 var app_title = 'xy-plot online grid viewer v1';
 
 var body = document.body;
-body.innerHTML = '<section id="section_main"><table><tr><td><table><tr><td align="left" valign="top"><span id="dim_out">X*Y</span></td><td align="left" valign="bottom"><div id="img_x" alt="&nbsp; X &nbsp;"></div></td></tr><tr><td align="right" valign="top"><div id="img_y" alt="&nbsp; Y &nbsp;"></div></td><td align="left" valign="top"><div id="img_cell" alt="&nbsp; CELL &nbsp;"></div></td></tr></table></td><td><div style="position:relative;line-height:0;"><img id="img_grid" alt="&nbsp; GRID &nbsp;"/><aside id="line_x1"></aside><aside id="line_x2"></aside><aside id="line_y1"></aside><aside id="line_y2"></aside></td></tr></table><img id="img_load"></div></img></section><section id="section_help"><h1>'+app_title+'</h1><h3>Load some "xy_grid-…" images made by <a href="https://github.com/AUTOMATIC1111/stable-diffusion-webui/wiki/Features#xy-plot" target="_blank" rel="noopener noreferrer">AUTOMATIC1111/stable-diffusion-webui</a> "X/Y plot" feature:</h3><ul><li>Drag-and-drop local files to this page (in-browser app, no server connection)</li><li>Copy and paste files with Ctrl+V (works in Chrome)</li><li>Copy and paste images (as pixel data) with Ctrl+V</li><li>Copy and paste a link to image as URL (cross-domain is OK)</li><li>Drag-and-drop a link to image or the image itself from other browser tabs (pasted as URL)</li><li>Paste with context menu / right mouse button: <input id="autofocus" type="text" autofocus="autofocus" oninput="this.value=[]"/> (autofocus)</li><li>Open files via modal winodow: <input type="file" multiple id="my_file" accept="image/*"/> (also by Insert hotkey)</li></ul><h3>Hotkeys / Controls:</h3><ul><li>Up-Left-Down-Right / WASD = change cell, navigate; Home / End = first / last cell</li><li>Ctrl + arrows = change size by 8 pixels; Shift + arrows = double size; Ctrl+Shift + arrows = by pixels</li><li>PageDown-PageUp / Q-E = change image (previous-next); 1-9 = select image by index; 0 = select last</li><li>+ or - = change scale; * or \\ = reset scale. (You may use browser scalling also, but it is not recommended)</li><li>Delete = remove current image from queue; Escape = remove all, return to main screen</li><li>Ctrl+V or drag-and-drop = add more images; Insert = trigger image selection modal window</li></ul></section>';
+body.innerHTML = '<section id="section_main"><table><tr><td><table><tr><td align="left" valign="top"><center id="dim_out">X*Y</center></td><td align="left" valign="bottom"><div id="img_x" alt="&nbsp; X &nbsp;"></div></td></tr><tr><td align="right" valign="top"><div id="img_y" alt="&nbsp; Y &nbsp;"></div></td><td align="left" valign="top"><div id="img_cell" alt="&nbsp; CELL &nbsp;"></div></td></tr></table></td><td><div style="position:relative;line-height:0;"><img id="img_grid" alt="&nbsp; GRID &nbsp;"/><aside id="line_x1"></aside><aside id="line_x2"></aside><aside id="line_y1"></aside><aside id="line_y2"></aside></td></tr></table><img id="img_load"></div></img></section><section id="section_help"><h1>'+app_title+'</h1><h3>Load some "xy_grid-…" images made by <a href="https://github.com/AUTOMATIC1111/stable-diffusion-webui/wiki/Features#xy-plot" target="_blank" rel="noopener noreferrer">AUTOMATIC1111/stable-diffusion-webui</a> "X/Y plot" feature:</h3><ul><li>Drag-and-drop local files to this page (in-browser app, no server connection)</li><li>Copy and paste files with Ctrl+V (works in Chrome)</li><li>Copy and paste images (as pixel data) with Ctrl+V</li><li>Copy and paste a link to image as URL (cross-domain is OK)</li><li>Drag-and-drop a link to image or the image itself from other browser tabs (pasted as URL)</li><li>Paste with context menu / right mouse button: <input id="autofocus" type="text" autofocus="autofocus" oninput="this.value=[]"/> (autofocus)</li><li>Open files via modal winodow: <input type="file" multiple id="my_file" accept="image/*"/> (also by Insert hotkey)</li></ul><h3>Hotkeys / Controls:</h3><ul><li>Up-Left-Down-Right / WASD = change cell, navigate; Home / End = first / last cell</li><li>Ctrl + arrows = change size by 8 pixels; Shift + arrows = double size; Ctrl+Shift + arrows = by pixels</li><li>PageDown-PageUp / Q-E = change image (previous-next); 1-9 = select image by index; 0 = select last</li><li>+ or - = change scale; * or \\ = reset scale. (You may use browser scalling also, but it is not recommended)</li><li>Delete = remove current image from queue; Escape = remove all, return to main screen</li><li>Ctrl+V or drag-and-drop = add more images; Insert = trigger image selection modal window</li></ul></section>';
 
 var
   img_grid = GEBI('img_grid'),
@@ -285,7 +285,7 @@ function render(force,nomove){
     var td = img_cell.parentNode;
     td.style.width = td.style.minWidth = scale_width+'px';
     td.style.height = td.style.minHeight = scale_height+'px';
-    dim_out.textContent = (cell_width||0)+'*'+(cell_height||0)+' ('+((files_index+1)||0)+'/'+files_array.length+')';
+    dim_out.innerHTML = (cell_width||0)+'*'+(cell_height||0)+'<nav>('+((files_index+1)||0)+'/'+files_array.length+')</nav>';
     view_x = Math.round(percent_x*(grid_width-1)) ||0;
     view_y = Math.round(percent_y*(grid_height-1)) ||0;
     var ss = (image_scale*main_width)+'px '+(image_scale*main_height)+'px';
