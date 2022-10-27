@@ -1,8 +1,8 @@
 ### [DEMO VIDEO](https://klimaleksus2.ucoz.ru/waifu/xy-plot-online-grid-viewer-v1.mp4)
-# Run or download: https://klimaleksus.github.io/xy-plot-online-grid-viewer/xy-plot-online-grid-viewer-v1.htm
+# Run or download: [https://klimaleksus.github.io/xy-plot-online-grid-viewer/xy-plot-online-grid-viewer-v1.htm](https://klimaleksus.github.io/xy-plot-online-grid-viewer/xy-plot-online-grid-viewer-v1.htm)
 
 Contributions/PRs are not accepted.  
-Discussion thread: https://github.com/AUTOMATIC1111/stable-diffusion-webui/discussions/0000
+Discussion thread: https://github.com/AUTOMATIC1111/stable-diffusion-webui/discussions/3819
 
 ## Load some "xy_grid-…" images made by [AUTOMATIC1111/stable-diffusion-webui](https://github.com/AUTOMATIC1111/stable-diffusion-webui/wiki/Features#xy-plot) "X/Y plot" feature:
 
