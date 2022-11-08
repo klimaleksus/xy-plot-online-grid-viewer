@@ -180,12 +180,17 @@ function add_files(files){
         //console.log(file);
         name = file.name;
         file = URL.createObjectURL(file);
+        if(!loaded_files[file]){
+          loaded_files[file] = name;
+          arr.push(file);
+        }
       }else{
-        name = file.replace(re,'');
-      }
-      if(!loaded_files[file]){
-        loaded_files[file] = name;
-        arr.push(file);
+        file.split('\n').forEach(function(file){
+          if(!loaded_files[file]){
+            loaded_files[file] = file.replace(re,'');
+            arr.push(file);
+          }
+        });
       }
     }
   };
