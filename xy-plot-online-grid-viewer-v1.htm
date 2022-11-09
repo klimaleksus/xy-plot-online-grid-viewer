@@ -145,6 +145,10 @@ function GEBI(id){
 function stopevent(e){
   e.stopPropagation();
   e.preventDefault();
+  var dt = e.dataTransfer;
+  if(dt){
+    dt.effectAllowed  = dt.dropEffect = 'link';
+  }
 };
 
 var
