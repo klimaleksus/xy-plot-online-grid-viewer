@@ -279,6 +279,7 @@ function open_file(index){
 var old_x, old_y, old_w, old_h, old_s, old_n;
 
 function render(force,nomove){
+  var doproc = true;
   if(force || cell_width!==old_w || cell_height!==old_h || image_scale!==old_s || old_n){
     if(cell_width>main_width){
       cell_width = main_width;
@@ -325,31 +326,33 @@ function render(force,nomove){
     img_x.style.backgroundSize = ss;
     img_y.style.backgroundSize = ss;
     //console.log(main_width,main_height,grid_width,grid_height,head_width,head_height,cell_width,cell_height,view_x,view_y);
-  }else if(view_x===old_x && view_y===old_y){
-    return;
+  }else if(view_x==old_x && view_y===old_y){
+    doproc = false;
   }
-  if(view_x>=grid_width){
-    view_x = grid_width-1;  
-  }else if(!(view_x>0)){
-    view_x = 0;
+  if(doproc){
+    if(view_x>=grid_width){
+      view_x = grid_width-1;  
+    }else if(!(view_x>0)){
+      view_x = 0;
+    }
+    if(view_y>=grid_height){
+      view_y = grid_height-1;
+    }else if(!(view_y>0)){
+      view_y = 0;
+    }
+    old_x = view_x;
+    old_y = view_y;
+    var x = (main_width-(head_width+view_x*cell_width))*image_scale |0;
+    var y = (main_height-(head_height+view_y*cell_height))*image_scale |0;
+    img_cell.style.backgroundPosition = x+'px '+y+'px';
+    img_x.style.backgroundPosition = x+'px 0px';
+    img_y.style.backgroundPosition = '0px '+ y+'px';
+    line_x1.style.right = (((grid_width-view_x)*cell_width)/main_width*100)+'%';
+    line_x2.style.left = ((head_width+(view_x+1)*cell_width)/main_width*100)+'%';
+    line_y1.style.bottom = (((grid_height-view_y)*cell_height)/main_height*100)+'%';
+    line_y2.style.top = ((head_height+(view_y+1)*cell_height)/main_height*100)+'%';
+    document.title = current_name;
   }
-  if(view_y>=grid_height){
-    view_y = grid_height-1;
-  }else if(!(view_y>0)){
-    view_y = 0;
-  }
-  old_x = view_x;
-  old_y = view_y;
-  var x = (main_width-(head_width+view_x*cell_width))*image_scale |0;
-  var y = (main_height-(head_height+view_y*cell_height))*image_scale |0;
-  img_cell.style.backgroundPosition = x+'px '+y+'px';
-  img_x.style.backgroundPosition = x+'px 0px';
-  img_y.style.backgroundPosition = '0px '+ y+'px';
-  line_x1.style.right = (((grid_width-view_x)*cell_width)/main_width*100)+'%';
-  line_x2.style.left = ((head_width+(view_x+1)*cell_width)/main_width*100)+'%';
-  line_y1.style.bottom = (((grid_height-view_y)*cell_height)/main_height*100)+'%';
-  line_y2.style.top = ((head_height+(view_y+1)*cell_height)/main_height*100)+'%';
-  document.title = current_name;
   swap_index[swap_value] = files_index;
   swap_scale[swap_value] = image_scale;
   swap_x[swap_value] = view_x;
