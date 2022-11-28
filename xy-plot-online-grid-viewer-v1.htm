@@ -319,8 +319,10 @@ function render(force,nomove){
     td.style.width = td.style.minWidth = scale_width+'px';
     td.style.height = td.style.minHeight = scale_height+'px';
     dim_out.innerHTML = (cell_width||0)+'*'+(cell_height||0)+'<nav>('+((files_index+1)||0)+'/'+files_array.length+')</nav>';
-    view_x = Math.round(percent_x*(grid_width-1)) ||0;
-    view_y = Math.round(percent_y*(grid_height-1)) ||0;
+    if(percent_x!==null && percent_y!==null){
+      view_x = Math.round(percent_x*(grid_width-1)) ||0;
+      view_y = Math.round(percent_y*(grid_height-1)) ||0;
+    }
     var ss = (image_scale*main_width)+'px '+(image_scale*main_height)+'px';
     img_cell.style.backgroundSize = ss;
     img_x.style.backgroundSize = ss;
@@ -367,7 +369,7 @@ window.onkeydown = function(e){
   var ctrl = e.ctrlKey||e.metaKey;
   var shift = e.shiftKey||e.altKey;
   var key = e.key;
-  var dorender = true;
+  var dorender = 1;
   if(ctrl||shift){
     var add = ctrl?shift?1:8:0;
     var mul = shift&&!ctrl?2:1;
@@ -395,11 +397,13 @@ window.onkeydown = function(e){
       break;
     case ' ':
       swap_value = +!swap_value;
+      dorender = 2;
       break;
     default:
       return;
     }
   }else{
+    save = true;
     switch(key){
     case 'ArrowRight':
     case 'D':
@@ -446,13 +450,13 @@ window.onkeydown = function(e){
     case 'E':
     case 'e':
       open_file(files_index+1);
-      dorender = false;
+      dorender = 0;
       break;
     case 'PageDown':
     case 'Q':
     case 'q':
       open_file(files_index-1);
-      dorender = false;
+      dorender = 0;
       break;
     case 'Delete':
       var took = files_array.splice(files_index,1);
@@ -462,7 +466,7 @@ window.onkeydown = function(e){
         URL.revokeObjectURL(took);
       }
       open_file(files_index);
-      dorender = false;
+      dorender = 0;
       break;
     case 'Insert':
       my_file.click();
@@ -475,7 +479,7 @@ window.onkeydown = function(e){
       }
       files_array.length = 0;
       open_file();
-      dorender = false;
+      dorender = 0;
       break;
     case '1':
     case '2':
@@ -488,7 +492,7 @@ window.onkeydown = function(e){
     case '9':
     case '0':
       open_file((+key||files_array.length)-1);
-      dorender = false;
+      dorender = 0;
       break;
     case ' ':
       swap_value = +!swap_value;
@@ -500,16 +504,23 @@ window.onkeydown = function(e){
       cell_height = swap_height[swap_value];
       if(new_index!==files_index){
         open_file(new_index);
-        dorender = false;
+        dorender = 0;
+      }else{
+        dorender = 2;
       }
+      save = false;
+      percent_x = percent_y = null;
       break;
     default:
       return;
     }
-    save = true;
   }
   if(dorender){
-    render(false,ctrl||shift);
+    if(dorender===2){
+      render(true,false);
+    }else{
+      render(false,ctrl||shift);
+    }
   }
   e.preventDefault();
   if(save){
