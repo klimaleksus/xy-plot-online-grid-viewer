@@ -1,4 +1,5 @@
-**Lastest update:** added `Space` hotkey for instant switching between non-adjacent cells/images.
+**Lastest update:** added `Space` hotkey for instant switching between non-adjacent cells/images.  
+Also press Ctrl+\* (or Shift+\*) to alternate between 512\*512 and 768\*768!
 
 ### [DEMO VIDEO](https://klimaleksus2.ucoz.ru/waifu/xy-plot-online-grid-viewer-v1.mp4)
 # Run or download: [https://klimaleksus.github.io/xy-plot-online-grid-viewer/xy-plot-online-grid-viewer-v1.htm](https://klimaleksus.github.io/xy-plot-online-grid-viewer/xy-plot-online-grid-viewer-v1.htm)
@@ -21,7 +22,8 @@ Discussion thread: https://github.com/AUTOMATIC1111/stable-diffusion-webui/discu
 - Up-Left-Down-Right / WASD = change cell, navigate; Home / End = first / last cell
 - Ctrl + arrows = change size by 8 pixels; Shift + arrows = double size; Ctrl+Shift + arrows = by pixels
 - PageDown-PageUp / Q-E = change image (previous-next); 1-9 = select image by index; 0 = select last
-- \+ or - = change scale; * or \ = reset scale. (You may use browser scalling also, but it is not recommended)
+- \+ or - = change scale; \* or /, \\, | = reset scale. (You may use browser scaling also, but it's not recommended)
+- Ctrl \+ \*, /, \\, | (or Shift \+ \*, /, \\, |) = reset size to 512\*512 or quickly change it to 768\*768
 - Space = switch between two sets of image/position/scale; Shift+Space = copy current values to other set
 - Delete = remove current image from queue; Escape = remove all, return to main screen
 - Ctrl+V or drag-and-drop = add more images; Insert = trigger image selection modal window
