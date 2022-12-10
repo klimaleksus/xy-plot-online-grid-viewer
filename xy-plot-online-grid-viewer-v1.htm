@@ -52,6 +52,9 @@ center{
   padding: 8px;
   width: 48px;
   height: 48px;
+  position: absolute;
+  left: 0;
+  top: 0;
 }
 </style>
 <script>
@@ -256,7 +259,6 @@ function open_file(index){
     html.style.overflow = body.style.overflow = '';
   }
   img_load.src = '';
-  dim_out.style.display = 'none';
   load_gif.style.display = 'block';
   img_load.onload = function(){
     img_load.onload = img_load.onerror = null;
@@ -270,7 +272,6 @@ function open_file(index){
     }
     render(true,false);
     img_load.src = '';
-    dim_out.style.display = '';
     load_gif.style.display = 'none';
   };
   img_load.src = url;
